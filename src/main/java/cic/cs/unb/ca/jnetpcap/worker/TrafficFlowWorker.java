@@ -3,10 +3,12 @@ package cic.cs.unb.ca.jnetpcap.worker;
 import cic.cs.unb.ca.jnetpcap.BasicFlow;
 import cic.cs.unb.ca.jnetpcap.FlowGenerator;
 import cic.cs.unb.ca.jnetpcap.PacketReader;
+import cic.cs.unb.ca.python.PythonProcessManager;
 import org.jnetpcap.Pcap;
 import org.jnetpcap.nio.JMemory.Type;
 import org.jnetpcap.packet.PcapPacket;
 import org.jnetpcap.packet.PcapPacketHandler;
+import org.jnetpcap.protocol.network.Ip4;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,11 +20,14 @@ public class TrafficFlowWorker extends SwingWorker<String,String> implements Flo
 	public static final Logger logger = LoggerFactory.getLogger(TrafficFlowWorker.class);
     public static final String PROPERTY_FLOW = "flow";
 	private String device;
+	private boolean stopped = false;
 
 
     public TrafficFlowWorker(String device) {
 		super();
 		this.device = device;
+
+		PythonProcessManager.getInstance().subscribe(this::onFlowEvaluated);
 	}
 
 	@Override
@@ -54,11 +59,38 @@ public class TrafficFlowWorker extends SwingWorker<String,String> implements Flo
              *
              * but it seems not work
              */
+//			System.out.println("nuevo paquete");
 
-            PcapPacket permanent = new PcapPacket(Type.POINTER);
-            packet.transferStateAndDataTo(permanent);
+			Ip4 ip = new Ip4();
+			PcapPacket permanent = new PcapPacket(Type.POINTER);
+			packet.transferStateAndDataTo(permanent);
+//			System.out.println("paquete copiado");
+
+			// 2) Comprueba si este paquete tiene cabecera IP
+			/*if (permanent.hasHeader(ip)) {
+				byte[] srcBytes = ip.source();
+				byte[] dstBytes = ip.destination();
+				try {
+					String srcIp = InetAddress.getByAddress(srcBytes).getHostAddress();
+					String dstIp = InetAddress.getByAddress(dstBytes).getHostAddress();
+
+					logger.info("Paquete de {} a {}  – longitud {} bytes",
+							srcIp,
+							dstIp,
+							permanent.getCaptureHeader().wirelen());
+
+				} catch (UnknownHostException e) {
+					logger.warn("No se pudo parsear IP", e);
+				}
+			} else {
+				logger.debug("Paquete sin cabecera IPv4, longitud {}", packet.size());
+			}//*/
+
+			//logger.info("Paquete recibido");
 
             flowGen.addPacket(PacketReader.getBasicPacketInfo(permanent, true, false));
+//			System.out.println("nose");
+
             if(isCancelled()) {
                 pcap.breakloop();
                 logger.debug("break Packet loop");
@@ -101,5 +133,29 @@ public class TrafficFlowWorker extends SwingWorker<String,String> implements Flo
 	@Override
 	public void onFlowGenerated(BasicFlow flow) {
         firePropertyChange(PROPERTY_FLOW,null,flow);
+		if (this.stopped) return;
+		PythonProcessManager.getInstance().sendMsg(flow.dumpFlowBasedFeaturesEx());
+	}
+
+	public void onFlowEvaluated(String result) {
+		if (result != null && !result.isEmpty()) {
+			logger.info("Flow evaluation result: {}", result);
+			firePropertyChange("flowEvaluation", null, result);
+			if (!result.equals("BENIGN")) {
+				logger.warn("Flow evaluation result indicates potential threat: {}", result);
+				this.stopped = true;
+				JOptionPane.showMessageDialog(
+					null,
+					"Flow evaluation result indicates potential threat: " + result,
+					"Threat Detected",
+					JOptionPane.WARNING_MESSAGE
+				);
+				this.stopped = false;
+			} else {
+				logger.info("Flow evaluation result is benign");
+			}
+		} else {
+			logger.warn("Received empty flow evaluation result");
+		}
 	}
 }

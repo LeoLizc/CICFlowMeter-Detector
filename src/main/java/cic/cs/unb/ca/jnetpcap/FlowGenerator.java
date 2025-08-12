@@ -68,36 +68,44 @@ public class FlowGenerator {
 	}
 
     public void addPacket(BasicPacketInfo packet){
+        //logger.info("Paquete recibido");
         if(packet == null) {
             return;
         }
         
     	BasicFlow   flow;
-    	long        currentTimestamp = packet.getTimeStamp();
-		    String id;
+    	long currentTimestamp = packet.getTimeStamp();
+        String id;
 
-    	if(this.currentFlows.containsKey(packet.fwdFlowId())||this.currentFlows.containsKey(packet.bwdFlowId())){
-	
-	if(this.currentFlows.containsKey(packet.fwdFlowId())) 
-		{id = packet.fwdFlowId();}
-    		else {
-		id = packet.bwdFlowId();}
+    	if(
+            this.currentFlows.containsKey(packet.fwdFlowId())
+            || this.currentFlows.containsKey(packet.bwdFlowId())
+        ){
+            //logger.info("Existe FLOW");
+            if(this.currentFlows.containsKey(packet.fwdFlowId())) {
+                id = packet.fwdFlowId();
+            } else {
+                id = packet.bwdFlowId();
+            }
 
     		flow = currentFlows.get(id);
     		// Flow finished due flowtimeout: 
     		// 1.- we move the flow to finished flow list
     		// 2.- we eliminate the flow from the current flow list
     		// 3.- we create a new flow with the packet-in-process
-    		if((currentTimestamp -flow.getFlowStartTime())>flowTimeOut){
+    		if((currentTimestamp - flow.getFlowStartTime())>flowTimeOut){
     			if(flow.packetCount()>1){
 					if (mListener != null) {
+                        logger.info("Avisando al listener");
 						mListener.onFlowGenerated(flow);
-					    }
-					else{
-                                                finishedFlows.put(getFlowCount(), flow);
-                                            }
+                    } else{
+                        //logger.info("Finalizando flujos");
+                        finishedFlows.put(getFlowCount(), flow);
+                    }
                     //flow.endActiveIdleTime(currentTimestamp,this.flowActivityTimeOut, this.flowTimeOut, false);
-    			}
+    			} else {
+                    //logger.info("Invalidando Flujo");
+                }
     			currentFlows.remove(id);    			
     			currentFlows.put(id, new BasicFlow(bidirectional,packet,flow.getSrc(),flow.getDst(),flow.getSrcPort(),flow.getDstPort()));
     			
@@ -111,21 +119,23 @@ public class FlowGenerator {
         	// 2.- we move the flow to finished flow list
         	// 3.- we eliminate the flow from the current flow list   	
     		}else if(packet.hasFlagFIN()){
-    	    	logger.debug("FlagFIN current has {} flow",currentFlows.size());
+    	    	//logger.info("FlagFIN current has {} flow",currentFlows.size());
     	    	flow.addPacket(packet);
                 if (mListener != null) {
+                    //logger.info("FIN FLOW informado");
                     mListener.onFlowGenerated(flow);
-                } 
-		else {
+                } else {
                     finishedFlows.put(getFlowCount(), flow);
                 }
                 currentFlows.remove(id);
     		}else{
+                //logger.info("CONTINUA FLUJO");
     			flow.updateActiveIdleTime(currentTimestamp,this.flowActivityTimeOut);
     			flow.addPacket(packet);
     			currentFlows.put(id,flow);
     		}
     	}else{
+            //logger.info("NO Existe FLOW: "+ currentFlows.size());
     		currentFlows.put(packet.fwdFlowId(), new BasicFlow(bidirectional,packet)); 		
     	}
     }

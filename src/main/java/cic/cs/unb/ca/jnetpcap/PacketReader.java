@@ -8,12 +8,17 @@ import org.jnetpcap.nio.JMemory;
 import org.jnetpcap.packet.JHeader;
 import org.jnetpcap.packet.JHeaderPool;
 import org.jnetpcap.packet.PcapPacket;
+import org.jnetpcap.protocol.application.Html;
 import org.jnetpcap.protocol.lan.Ethernet;
+import org.jnetpcap.protocol.lan.SLL;
 import org.jnetpcap.protocol.network.Ip4;
 import org.jnetpcap.protocol.network.Ip6;
+import org.jnetpcap.protocol.sigtran.Sctp;
+import org.jnetpcap.protocol.tcpip.Http;
 import org.jnetpcap.protocol.tcpip.Tcp;
 import org.jnetpcap.protocol.tcpip.Udp;
 import org.jnetpcap.protocol.vpn.L2TP;
+import org.jnetpcap.protocol.wan.PPP;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -147,13 +152,13 @@ public class PacketReader {
 					packetInfo.setHeaderBytes(udp.getHeaderLength());
 					packetInfo.setProtocol(17);			
 				}else {
-					/*logger.debug("other packet Ethernet -> {}"+  packet.hasHeader(new Ethernet()));
+					logger.debug("other packet Ethernet -> {}"+  packet.hasHeader(new Ethernet()));
 					logger.debug("other packet Html     -> {}"+  packet.hasHeader(new Html()));
 					logger.debug("other packet Http     -> {}"+  packet.hasHeader(new Http()));
 					logger.debug("other packet SLL      -> {}"+  packet.hasHeader(new SLL()));
 					logger.debug("other packet L2TP     -> {}"+  packet.hasHeader(new L2TP()));
 					logger.debug("other packet Sctp     -> {}"+  packet.hasHeader(new Sctp()));
-					logger.debug("other packet PPP      -> {}"+  packet.hasHeader(new PPP()));*/
+					logger.debug("other packet PPP      -> {}"+  packet.hasHeader(new PPP()));
 
 					int headerCount = packet.getHeaderCount();
 					for(int i=0;i<headerCount;i++) {
@@ -164,7 +169,7 @@ public class PacketReader {
 				}
 			}
 		} catch (Exception e) {
-			//e.printStackTrace();
+			e.printStackTrace();
 			packet.scan(ipv4.getId());
 			String errormsg = "";
 			errormsg+=e.getMessage()+"\n";
