@@ -20,7 +20,7 @@ public class PythonProcessManager {
     private final ExecutorService executor;
     private BufferedReader reader;
     private BufferedReader errorReader;
-    private final List<Consumer<String>> subscribers = new CopyOnWriteArrayList<>();
+    private final List<Consumer<EvaluationResult>> subscribers = new CopyOnWriteArrayList<>();
     private final AtomicBoolean running = new AtomicBoolean(false);
     private final Object writeLock = new Object();
     private final Thread shutdownHook;
@@ -124,11 +124,27 @@ public class PythonProcessManager {
                             break;
                         }
                         logger.info("Received response: {}", response);
+                        if (response.trim().isEmpty()) {
+                            // Ignore líneas vacías
+                            continue;
+                        }
                         if (response.startsWith("[INFO]")) {
                             // Ignore mensajes de info
                             continue;
                         }
-                        notifySubscribers(response.split(";")[0].trim());
+                        if(response.startsWith("[RESULT]")) {
+                            String[] content = response.substring(8).trim().split(";");
+
+                            if (content.length < 2) {
+                                logger.warn("Malformed response: {}", response);
+                                continue;
+                            }
+
+                            EvaluationResult result = new EvaluationResult(content[1].trim(), content[0].trim());
+                            notifySubscribers(result);
+                            continue;
+                        }
+                        logger.warn("Unknown response format: {}", response);
                     } catch (IOException e) {
                         if (running.get()) {
                             logger.error("Error reading from Python process", e);
@@ -157,7 +173,7 @@ public class PythonProcessManager {
         });
     }
 
-    public void subscribe(Consumer<String> subscriber) {
+    public void subscribe(Consumer<EvaluationResult> subscriber) {
         subscribers.add(subscriber);
         logger.debug("New subscriber added. Total subscribers: {}", subscribers.size());
     }
@@ -167,8 +183,8 @@ public class PythonProcessManager {
         logger.debug("Subscriber removed. Total subscribers: {}", subscribers.size());
     }
 
-    private void notifySubscribers(String response) {
-        for (Consumer<String> subscriber : subscribers) {
+    private void notifySubscribers(EvaluationResult response) {
+        for (Consumer<EvaluationResult> subscriber : subscribers) {
             try {
                 subscriber.accept(response);
             } catch (Exception e) {

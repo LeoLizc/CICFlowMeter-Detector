@@ -4,6 +4,7 @@ import cic.cs.unb.ca.jnetpcap.BasicFlow;
 import cic.cs.unb.ca.jnetpcap.FlowGenerator;
 import cic.cs.unb.ca.jnetpcap.PacketReader;
 import cic.cs.unb.ca.notify.HttpClientUtil;
+import cic.cs.unb.ca.python.EvaluationResult;
 import cic.cs.unb.ca.python.PythonProcessManager;
 import org.jnetpcap.Pcap;
 import org.jnetpcap.nio.JMemory.Type;
@@ -149,7 +150,8 @@ public class TrafficFlowWorker extends SwingWorker<String,String> implements Flo
 		PythonProcessManager.getInstance().sendMsg(flow.dumpFlowBasedFeaturesEx());
 	}
 
-	public void onFlowEvaluated(String result) {
+	public void onFlowEvaluated(EvaluationResult evaluation) {
+		String result = evaluation.getResult(), id = evaluation.getFlowId();
 		if (result != null && !result.isEmpty()) {
 			logger.info("Flow evaluation result: {}", result);
 			firePropertyChange("flowEvaluation", null, result);
@@ -161,7 +163,7 @@ public class TrafficFlowWorker extends SwingWorker<String,String> implements Flo
 				logger.info("Notifying");
 				if (this.notifyUrl != null && !this.notifyUrl.isEmpty()) {
 					try {
-						String body = String.format("{\"result\": \"%s\"}", result);
+						String body = String.format("{\"id\":\"%s\",\"result\": \"%s\"}", id, result);
 						HttpClientUtil.sendPost(this.notifyUrl, body);
 					} catch (Exception e) {
 						logger.error("Failed to notify server: {}", e.getMessage());
