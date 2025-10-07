@@ -145,7 +145,7 @@ public class TrafficFlowWorker extends SwingWorker<String,String> implements Flo
 	@Override
 	public void onFlowGenerated(BasicFlow flow) {
         firePropertyChange(PROPERTY_FLOW,null,flow);
-		if (this.stopped) return;
+//		if (this.stopped) return;
 		logger.info("Enviando Mensaje");
 		PythonProcessManager.getInstance().sendMsg(flow.dumpFlowBasedFeaturesEx());
 	}
@@ -154,7 +154,7 @@ public class TrafficFlowWorker extends SwingWorker<String,String> implements Flo
 		String result = evaluation.getResult(), id = evaluation.getFlowId();
 		if (result != null && !result.isEmpty()) {
 			logger.info("Flow evaluation result: {}", result);
-			firePropertyChange("flowEvaluation", null, result);
+//			firePropertyChange("flowEvaluation", null, result);
 			if (!result.equals("BENIGN")) {
 				logger.warn("Flow evaluation result indicates potential threat: {}", result);
 				this.stopped = true;
