@@ -16,7 +16,7 @@ $ sudo bash
 $ gradle execute
 
 //windows:
-$ gradlew execute
+$ ./gradlew execute
 ```
 ### Eclipse
 
