@@ -24,11 +24,11 @@ public class MainFrame extends JFrame{
 	
 	
 	public MainFrame() throws HeadlessException {
-		super("CICFlowMeter");
+		super("DeepStack-IDS");
 		
 		getContentPane().setLayout(new BorderLayout());
 		getContentPane().getInsets().set(5, 5, 5, 5);
-		setIconImage(Toolkit.getDefaultToolkit().getImage(getClass().getClassLoader().getResource("CIC_Logo.png")));
+		setIconImage(Toolkit.getDefaultToolkit().getImage(getClass().getClassLoader().getResource("DESIDS_Logo.png")));
 		
 		setMinimumSize(new Dimension(700,470));
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -72,6 +72,7 @@ public class MainFrame extends JFrame{
 		
 		JMenu mnNetwork = new JMenu("NetWork");
 		menuBar.add(mnNetwork);
+		mnNetwork.setEnabled(false);
 		
 		JMenuItem itemOffline = new JMenuItem("Offline");
 		itemOffline.addActionListener(e -> SwingUtils.setBorderLayoutPane(getContentPane(),offLinePane,BorderLayout.CENTER));

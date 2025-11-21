@@ -3,8 +3,8 @@ apply plugin: 'maven'
 apply plugin: 'application'
 
 group = 'cic.unb.ca'
-version = '4.0-Detector'
-description = """CICFlowMeterV4Detector"""
+version = 'V1.0'
+description = """DeepStack-IDS-V1"""
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
@@ -122,7 +122,7 @@ task exeCMD(type: JavaExec){
 
 task cmdScript(type: CreateStartScripts) {
     mainClassName = "cic.cs.unb.ca.ifm.Cmd"
-    applicationName = "cfm"
+    applicationName = "dsi"
     outputDir = new File(project.buildDir, 'scripts')
     classpath = jar.outputs.files + project.configurations.runtime
     defaultJvmOpts = ["-Djava.library.path=../lib/native"]
@@ -136,7 +136,7 @@ applicationDistribution.into("bin") {
 
 // The Application Plugin
 mainClassName = "cic.cs.unb.ca.ifm.App"
-applicationName = "CICFlowMeter"
+applicationName = "DeepStack-IDS"
 applicationDefaultJvmArgs = ["-Djava.library.path=../lib/native"]
 
 applicationDistribution.from("jnetpcap/linux/jnetpcap-1.4.r1425") {

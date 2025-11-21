@@ -4,7 +4,7 @@
 	<groupId>cic.unb.ca</groupId>
 	<artifactId>SimpleFlowMeterV4</artifactId>
 	<version>0.0.4-SNAPSHOT</version>
-	<name>SimpleFlowMeterV4</name>
+	<name>DeepStack-IDSV1</name>
 
 	<dependencies>
 		<dependency>  
@@ -133,7 +133,7 @@
                     		<descriptorRefs>
                     			<descriptorRef>jar-with-dependencies</descriptorRef>
                     		</descriptorRefs>
-                    		<finalName>CICFlowMeterV3-${project.version}</finalName>
+                    		<finalName>DeepStack-IDS.V1-${project.version}</finalName>
                     		<appendAssemblyId>false</appendAssemblyId>
                     	</configuration>
                     	<id>build-NetWorkTraffic</id>
